@@ -151,16 +151,24 @@ public class ConcurrentBucketHashMap<K, V> {
     public int size() {
         int size = 0 ;
 
+        //Lock all the buckets
         for ( int i = 0 ; i < numberOfBuckets ; i++ ) {
             Bucket<K, V> theBucket =  buckets.get(i) ;
 
-            theBucket.writeLock.lock();
+            theBucket.readLock.lock();
+
+
+        }
+
+        //Get the size of each bucket then unlock its read lock
+        for ( int x = 0 ; x < numberOfBuckets ; x++ ) {
+            Bucket<K, V> theBucket =  buckets.get(x) ;
 
             size += theBucket.size() ;
 
-            theBucket.writeLock.unlock();
-
+            theBucket.readLock.unlock();
         }
+
         return size ;
     }
 
