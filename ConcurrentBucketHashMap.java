@@ -3,7 +3,7 @@ import java.util.concurrent.* ;
 import java.util.concurrent.locks.* ;
 
 /*
- * A SynchronizedBucketHashMap implements a subset of the Map interface.
+ * A ConcurrentBucketHashMap implements a subset of the Map interface.
  * It would be relatively easy (but tedious) to add the
  * missing methods to bring this into conformance with the
  * Map interface.
@@ -19,7 +19,7 @@ import java.util.concurrent.locks.* ;
  * compoutation of the size.
  */
 
-public class SynchronizedBucketHashMap<K, V> {
+public class ConcurrentBucketHashMap<K, V> {
     final int numberOfBuckets ;
     final List<Bucket<K, V>> buckets ;
 
@@ -50,7 +50,9 @@ public class SynchronizedBucketHashMap<K, V> {
     class Bucket<K, V> {
         private final List<Pair<K, V>> contents =
                 new ArrayList<Pair<K, V>>() ;
-        private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
+        private final ReadWriteLock lock = new ReentrantReadWriteLock(true);
+        private final Lock readLock = lock.readLock();
+        private final Lock writeLock = lock.writeLock();
 
         /*
          * Return the current Bucket size.
@@ -63,35 +65,59 @@ public class SynchronizedBucketHashMap<K, V> {
          * Get the Pair at location 'i' in the Bucket.
          */
         Pair<K, V> getPair(int i) {
-            return contents.get(i) ;
+            readLock.lock();
+            try {
+                return contents.get(i);
+            }
+            finally{
+                readLock.unlock();
+            }
         }
 
         /*
          * Replace the Pair at location 'i' in the Bucket.
          */
         void putPair(int i, Pair<K, V> pair) {
-            contents.set(i, pair) ;
+            writeLock.lock();
+            try {
+                contents.set(i, pair);
+            }
+            finally {
+                writeLock.unlock();
+            }
         }
 
         /*
          * Add a Pair to the Bucket.
          */
         void addPair(Pair<K, V> pair) {
-            contents.add(pair) ;
+            writeLock.lock();
+            try {
+                contents.add(pair);
+            }
+            finally {
+                writeLock.unlock();
+            }
         }
 
         /*
          * Remove a Pair from the Bucket by position.
          */
         void removePair(int index) {
-            contents.remove(index) ;
+            writeLock.lock();
+            try {
+                contents.remove(index);
+            }
+            finally {
+                writeLock.unlock();
+            }
         }
     }
 
     /*
-     * Constructor for the SynchronizedBucketHashMap proper.
+     * Constructor for the ConcurrentBucketHashMap proper.
      */
-    public SynchronizedBucketHashMap(int nbuckets) {
+    public ConcurrentBucketHashMap(int nbuckets) {
         numberOfBuckets = nbuckets ;
         buckets = new ArrayList<Bucket<K, V>>(nbuckets) ;
 
