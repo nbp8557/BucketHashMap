@@ -47,7 +47,7 @@ public class ConcurrentBucketHashMap<K, V> {
      * object consists of an extensible "contents" list protected
      * with a ReadWriteLock "rwl".
      */
-    class Bucket<K, V> {
+    class Bucket<K, V> implements ReadWriteLock {
         private final List<Pair<K, V>> contents =
                 new ArrayList<Pair<K, V>>() ;
         private final ReadWriteLock lock = new ReentrantReadWriteLock(true);
@@ -111,6 +111,16 @@ public class ConcurrentBucketHashMap<K, V> {
             finally {
                 writeLock.unlock();
             }
+        }
+
+        @Override
+        public Lock readLock() {
+            return null;
+        }
+
+        @Override
+        public Lock writeLock() {
+            return null;
         }
     }
 
