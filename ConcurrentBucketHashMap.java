@@ -130,7 +130,7 @@ public class ConcurrentBucketHashMap<K, V> {
         for ( int i = 0 ; i < numberOfBuckets ; i++ ) {
             Bucket<K, V> theBucket =  buckets.get(i) ;
 
-            theBucket.rwl.writeLock().lock();
+            theBucket.rwl.readLock().lock();
 
 
         }
@@ -141,7 +141,7 @@ public class ConcurrentBucketHashMap<K, V> {
 
             size += theBucket.size() ;
 
-            theBucket.rwl.writeLock().unlock();
+            theBucket.rwl.readLock().unlock();
         }
 
         return size ;
